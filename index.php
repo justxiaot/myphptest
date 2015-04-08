@@ -115,3 +115,33 @@ class Foo2 {
 
 $foo2 = new Foo2(new Bar2(new Bim2()));
 $foo2->doSomething();
+
+
+class Container {
+
+    private $s = [];
+
+    function __set($k, $v) {
+        $this->s[$k] = $v;
+    }
+
+    function __get($k) {
+        return $this->s[$k]($this);
+    }
+}
+
+$container = new Container();
+$container->bim = function() {
+    return new Bim2();
+};
+
+$container->bar = function($container) {
+    return new Bar2($container->bim);
+};
+
+$container->foo = function($container) {
+    return new Foo2($container->bar);
+};
+echo "<br/>";
+$foo = $container->foo;
+$foo->dosomething();
