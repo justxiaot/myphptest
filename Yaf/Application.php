@@ -10,7 +10,9 @@ namespace Yaf;
 
 
 use Yaf\Exception\StartupError;
-
+use Yaf\Config\Ini;
+use Yaf\Config\Simple;
+use Yaf\Request\Http;
 
 class Application {
 
@@ -40,14 +42,24 @@ class Application {
             );
         }
         $this->_environ = $env;
+        $config = $this->_loadConfig($config);
+
+        if ($config == null ||
+            (!($config instanceof Config_Abstract))
+        || $this->parseOptions($config->toArray()) != true) {
+            throw new StartupError('Initialization of application config failed');
+        }
+        $this->_config = $config;
+
+        $request = new Http();
     }
 
     protected function _loadConfig($file) {
         $environment = $this->environ();
         if (is_string($file)) {
-            $config = new Config\Ini($file, $environment);
+            $config = new Ini($file, $environment);
         } elseif (is_array($file)) {
-            $config = new Config\Simple($file);
+            $config = new Simple($file);
         } elseif ($file instanceof Config_Abstract) {
             $config = $file;
         } else {
@@ -68,8 +80,8 @@ class Application {
         return $env;
     }
 
-    public function app() {
-
+    public static function app() {
+        return self::$_app;
     }
 
 }
